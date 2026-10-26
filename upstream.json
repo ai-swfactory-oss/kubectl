@@ -1,0 +1,26 @@
+{
+  "version": "1.37.1",
+  "repack": 0,
+  "assets": {
+    "linux-x64": {
+      "path": "bin/linux/amd64/kubectl",
+      "digest": "sha256:65691ff77eb6fa44c908b77a1082c9f092c3b9733b5cefabec0d1104890e21a8",
+      "sha512": "ff56b9d53b024d0bf4ab6a5c802936d6fd14ef33036962bd9c7202ffb21c04836781b5a2ff0394c35ba7a7aa48f21b51cfe733247672de4d89bc29602e1cc94a"
+    },
+    "linux-arm64": {
+      "path": "bin/linux/arm64/kubectl",
+      "digest": "sha256:ff749f4b78d9c4f1ec87307df9b50119ed819e2094aa9810cb9acffc3286c8c7",
+      "sha512": "03318c3d66dd57317b4fb55919dbc9a07524380b4294bff41bf8eabcae5fbc7f951105b5b36bc7839450209c414ef9c9cf4ac0a4342cbb42617ecd5db7ac4004"
+    },
+    "darwin-x64": {
+      "path": "bin/darwin/amd64/kubectl",
+      "digest": "sha256:6851381c486ff6edd691623e3d65c87cb9a5b02887ff8fbbb38d8a031b748387",
+      "sha512": "8c412e5e9e28967eacac914f5b077ce5d38bcfd1b921b10e203563c010730c72cbfad9c3965db06d0c0e817107bf3978c0f53f86444b920ea9adf29e2119906f"
+    },
+    "darwin-arm64": {
+      "path": "bin/darwin/arm64/kubectl",
+      "digest": "sha256:fd65982c97ddad3106754b69ffa196d0e543aa591930ae52aed1adfb92f8c77f",
+      "sha512": "0ad6cba8ef1ffdc67fc59a09044ccbe7bb21db93943c6a50c282de3b824d2d032613c614cda60be6b87d74db3d57af28080ed1dd3e051fd49479dc8b382099d3"
+    }
+  }
+}

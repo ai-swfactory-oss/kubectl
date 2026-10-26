@@ -1,0 +1,25 @@
+{
+  "name": "@ai-swfactory-oss/kubectl",
+  "description": "kubectl (the Kubernetes command-line tool) as the native upstream binary for your platform: no download at install time, no install scripts",
+  "keywords": [
+    "kubectl",
+    "kubernetes",
+    "k8s"
+  ],
+  "main": "index.js",
+  "types": "index.d.ts",
+  "bin": {
+    "kubectl": "bin/kubectl.js"
+  },
+  "files": [
+    "bin/kubectl.js",
+    "index.js",
+    "index.d.ts",
+    "LICENSE",
+    "NOTICE",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  }
+}

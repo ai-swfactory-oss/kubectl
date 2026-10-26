@@ -1,0 +1,140 @@
+name: update
+
+# Daily: if dl.k8s.io's stable channel (release/stable.txt) names a newer
+# kubectl than upstream.json, rewrite upstream.json for it (the binary paths,
+# and the sha256 and sha512 that dl.k8s.io publishes next to each binary;
+# each binary is downloaded once and must match both published digests, so
+# the two checksum files cross-check each other; repack reset to 0) and open a
+# pull request with it; the run fetches, packs and installs it on every
+# platform, and merging it publishes (build.yml runs on the push to main).
+# Then make sure the packages for main's upstream.json are published: every
+# successful publish ends with a GitHub release v<version>, so a missing
+# release means "not published yet", and a failed build is retried every day
+# until it succeeds.
+#
+# Monthly: keep the schedule alive. GitHub disables scheduled workflows after
+# 60 days without repository activity.
+
+on:
+  schedule:
+    - cron: "23 4 * * *"
+    - cron: "41 5 1 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  packages: write
+  actions: write
+  id-token: write
+  attestations: write
+
+concurrency:
+  group: update
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-24.04
+    outputs:
+      missing: ${{ steps.check.outputs.missing }}
+      sha: ${{ steps.check.outputs.sha }}
+      bump: ${{ steps.bump.outputs.sha }}
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Is main's version published?
+        id: check
+        run: |
+          tag="v$(bash scripts/pkgver.sh)"
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "missing=false" >> "$GITHUB_OUTPUT"; echo "$tag already released"
+          else
+            echo "missing=true" >> "$GITHUB_OUTPUT"; echo "$tag not released: building"
+          fi
+
+      - name: Keepalive (monthly)
+        if: github.event.schedule == '41 5 1 * *'
+        run: gh api -X PUT "repos/$GH_REPO/actions/workflows/update.yml/enable"
+
+      - name: Follow the latest stable kubectl release
+        id: follow
+        run: |
+          stable=$(curl -fsSL --retry 3 https://dl.k8s.io/release/stable.txt)
+          if ! [[ "$stable" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "dl.k8s.io stable.txt says '$stable', not v<semver>" >&2; exit 1
+          fi
+          latest=${stable#v}
+          current=$(jq -er .version upstream.json)
+          newest=$(printf '%s\n%s\n' "$current" "$latest" | sort -V | tail -n1)
+          if [ "$latest" = "$current" ] || [ "$newest" != "$latest" ]; then
+            echo "upstream $latest, ours $current: nothing to do"; exit 0
+          fi
+          echo "upstream $latest is newer than $current: updating upstream.json"
+          base="https://dl.k8s.io/release/v$latest"
+          assets='{}'
+          for pair in linux-x64:linux/amd64 linux-arm64:linux/arm64 darwin-x64:darwin/amd64 darwin-arm64:darwin/arm64; do
+            platform=${pair%%:*}
+            path="bin/${pair#*:}/kubectl"
+            sha256=$(curl -fsSL --retry 3 "$base/$path.sha256" | tr -d '[:space:]')
+            sha512=$(curl -fsSL --retry 3 "$base/$path.sha512" | tr -d '[:space:]')
+            [[ "$sha256" =~ ^[0-9a-f]{64}$ ]] || { echo "$path.sha256 is not 64 hex: '$sha256'" >&2; exit 1; }
+            [[ "$sha512" =~ ^[0-9a-f]{128}$ ]] || { echo "$path.sha512 is not 128 hex: '$sha512'" >&2; exit 1; }
+            # Cross-check: the published sha256 and sha512 must describe the
+            # same bytes.
+            curl -fsSL --retry 3 -o kubectl.download "$base/$path"
+            actual256=$(sha256sum kubectl.download | cut -d' ' -f1)
+            actual512=$(sha512sum kubectl.download | cut -d' ' -f1)
+            rm kubectl.download
+            if [ "$actual256" != "$sha256" ] || [ "$actual512" != "$sha512" ]; then
+              echo "$path: the published sha256/sha512 do not both match the binary" >&2; exit 1
+            fi
+            assets=$(jq -c --arg k "$platform" --arg p "$path" --arg d "sha256:$sha256" --arg s "$sha512" \
+              '. + {($k): {path: $p, digest: $d, sha512: $s}}' <<<"$assets")
+          done
+          jq -n --arg v "$latest" --argjson a "$assets" '{version: $v, repack: 0, assets: $a}' > upstream.json
+          cat upstream.json
+          echo "version=$latest" >> "$GITHUB_OUTPUT"
+
+      - name: Open the bump pull request
+        id: bump
+        if: steps.follow.outputs.version != ''
+        env:
+          VERSION: ${{ steps.follow.outputs.version }}
+        run: |
+          branch="update/kubectl-$VERSION"
+          if gh pr list --head "$branch" --state open --json number --jq '.[0].number' | grep -q .; then
+            echo "pull request for $branch already open"; exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$branch"
+          git commit -am "chore: update kubectl to $VERSION"
+          git push --force origin "$branch"
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          gh pr create --head "$branch" --base main --title "chore: update kubectl to $VERSION" \
+            --body "dl.k8s.io's stable channel names kubectl v$VERSION. upstream.json now pins its four release binaries with the sha256 and sha512 dl.k8s.io publishes for them; each binary was downloaded and matched both. The update run that opened this pull request fetched, verified, packed and installed the packages on every platform (pull requests opened with GITHUB_TOKEN start no pr workflow); merging publishes them."
+
+  # A pull request opened with GITHUB_TOKEN starts no workflow, so the bump is
+  # built and tested here, on the branch the pull request carries.
+  test-bump:
+    needs: update
+    if: needs.update.outputs.bump != ''
+    uses: ./.github/workflows/build.yml
+    with:
+      ref: ${{ needs.update.outputs.bump }}
+      publish: false
+    secrets: inherit
+
+  build:
+    needs: update
+    if: needs.update.outputs.missing == 'true'
+    uses: ./.github/workflows/build.yml
+    with:
+      ref: ${{ needs.update.outputs.sha }}
+      publish: true
+    secrets: inherit
