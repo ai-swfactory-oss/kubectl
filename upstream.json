@@ -1,26 +1,26 @@
 {
-  "version": "1.37.1",
+  "version": "1.37.2",
   "repack": 0,
   "assets": {
     "linux-x64": {
       "path": "bin/linux/amd64/kubectl",
-      "digest": "sha256:65691ff77eb6fa44c908b77a1082c9f092c3b9733b5cefabec0d1104890e21a8",
-      "sha512": "ff56b9d53b024d0bf4ab6a5c802936d6fd14ef33036962bd9c7202ffb21c04836781b5a2ff0394c35ba7a7aa48f21b51cfe733247672de4d89bc29602e1cc94a"
+      "digest": "sha256:c04487523e7aa7d1493f7808174c899db93d7a9cf57531420cd76b9bd415f8f4",
+      "sha512": "a8aea87a6e6b4e1d77e124c56daef87ac807c16885ba1faf460484544fccdba2021ff68de6af61c586834a6a0836a9e6e9868b5ff97b238f7fdc3bfe860aeaa9"
     },
     "linux-arm64": {
       "path": "bin/linux/arm64/kubectl",
-      "digest": "sha256:ff749f4b78d9c4f1ec87307df9b50119ed819e2094aa9810cb9acffc3286c8c7",
-      "sha512": "03318c3d66dd57317b4fb55919dbc9a07524380b4294bff41bf8eabcae5fbc7f951105b5b36bc7839450209c414ef9c9cf4ac0a4342cbb42617ecd5db7ac4004"
+      "digest": "sha256:fcc16f63186659d9722014b7e02d5fdd2d4e669cb8c0ab66365d7d3b8ba03509",
+      "sha512": "c0a76e3cf727ded0723c95f26b498f028e88e5baa8031c0753974f87fd30239a76180bc090f5699f741f1f72e660431dc9e945492dea171d97778c88e9723ec6"
     },
     "darwin-x64": {
       "path": "bin/darwin/amd64/kubectl",
-      "digest": "sha256:6851381c486ff6edd691623e3d65c87cb9a5b02887ff8fbbb38d8a031b748387",
-      "sha512": "8c412e5e9e28967eacac914f5b077ce5d38bcfd1b921b10e203563c010730c72cbfad9c3965db06d0c0e817107bf3978c0f53f86444b920ea9adf29e2119906f"
+      "digest": "sha256:88379aff5c8111de6be0a394adffba2819e44cde269f3ab23cef76de1a48eaa8",
+      "sha512": "21b8b059fe31063b967365d3cb695fafade0c13db362516ba8256462e97cc2ef4d0fb216f0fb05d9e14d1cb4839ac68ae52159938c32e60030d69708a5a874d1"
     },
     "darwin-arm64": {
       "path": "bin/darwin/arm64/kubectl",
-      "digest": "sha256:fd65982c97ddad3106754b69ffa196d0e543aa591930ae52aed1adfb92f8c77f",
-      "sha512": "0ad6cba8ef1ffdc67fc59a09044ccbe7bb21db93943c6a50c282de3b824d2d032613c614cda60be6b87d74db3d57af28080ed1dd3e051fd49479dc8b382099d3"
+      "digest": "sha256:55701af0d51815ee335f240e48acf0959c3c23017ed3fa816e880c4a92bae581",
+      "sha512": "bce1232e5f29238fab9907c6c13a6c256d3eafd910b2a8044297956db9b408f7141b4b79bd02c399233e473fa923102e1978dc8eebd353fbaaf357ff6042afba"
     }
   }
 }
